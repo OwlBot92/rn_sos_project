@@ -1,21 +1,55 @@
+import React, { useState, useEffect } from 'react'
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, ActivityIndicator } from 'react-native';
 
-export default function App() {
+import * as Contacts from 'expo-contacts';
+import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import EntryApp from './EntryApp';
+
+const App = (props) => {
+
+  const [state, setState] = useState({
+    contactsPermissions: false,
+    locationPermissions: false,
+    root: 'Welcome',
+  });
+
+  const checkPermissions = async () => {
+    const contactsPermission = await Contacts.requestPermissionsAsync();
+    const locationPermissions = await Location.requestForegroundPermissionsAsync();
+
+    
+    
+
+    setState({
+      ...state,
+      contactsPermissions: contactsPermission.status === 'granted',
+      locationPermissions: locationPermissions.status === 'granted',
+    });
+  }
+ 
+  useEffect(() => {
+    checkPermissions();
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      {
+        !state.contactsPermissions && !state.locationPermissions &&
+        <ActivityIndicator />
+      }
+      {
+        state.contactsPermissions && state.locationPermissions && 
+        <EntryApp
+          root={state.root}
+        />
+      }
+      
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+
+export default App;
